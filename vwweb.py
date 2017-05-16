@@ -98,6 +98,7 @@ def assembleall():
     namelist = getnamelist()
     for name in namelist:
         assemble(name)
+        addplaintexttag(name)
 
 
 
@@ -191,6 +192,8 @@ def removebrokenlinks(html):
     """
     check if a hyper link has a correponding wiki in wikidir
     if not the strip the link.
+
+    this only works assuming the links ends with html (with or without anchor)
     """
     ap1 = html.find('<a href')
     result = html[: ap1]
@@ -200,8 +203,13 @@ def removebrokenlinks(html):
         ap4 = ap3 + 4
         linkp1 = html.find('"', ap1 + 1)
         linkp2 = html.find('"', linkp1 + 1)
-        link = wikidir + html[linkp1 + 1 : linkp2 - 5] + '.wiki'
-        if (not path.isfile(link)) and (html[linkp1 + 1: linkp1 + 5] != 'http'):
+        linkp3 = html.find('#', linkp1 + 1, linkp2) #process links with anchors
+        if linkp3 == -1:
+            linkpath = html[linkp1 + 1 : linkp2 - 5]
+        else:
+            linkpath = html[linkp1 + 1 : linkp3 - 5]
+        linkpath = wikidir + linkpath + '.wiki'
+        if (not path.isfile(linkpath)) and (html[linkp1 + 1: linkp1 + 5] != 'http'):
             delta = html[ap2 + 1 : ap3]
         else:
             delta = html[ap1 : ap4]
@@ -209,6 +217,14 @@ def removebrokenlinks(html):
         result += delta + html[ap4 : ap1]
     result += html[-1]
     return result
+
+def addplaintexttag(wikiname):
+    """
+    add plaintext tag so that github won't recognise the wiki files as markdown
+    """
+    data = open(wikidir + wikiname + '.wiki', 'r').read()
+    data = '%%<!-- -*- mode: text; -*- -->\n' + data
+    open(wikidir + wikiname + '.wiki', 'w').write(data)
 
 if __name__ == '__main__':
     genlist()
