@@ -136,7 +136,22 @@ def navbar(wikiname):
     return data
 
 
-
+def getdate(wikiname):
+    """
+    parse the date of wikiname.wiki
+    if %date field exists then use it, otherwise print a warning and use file modification date
+    """
+    wikifile = open(wikidir + wikiname + '.wiki', 'r')
+    data = wikifile.read()
+    pos = data.find('%date')
+    if pos == -1:
+        print('Warning: ' + wikiname + ' has no date placeholder! Using file modification date...')
+        t = path.getmtime(wikidir + wikiname + '.wiki')
+        return time.strftime("%Y-%m-%d", time.gmtime(t))
+    else:
+        pos += 6
+        pos1 = data.find('\n', pos)
+        return data[pos : pos1]
 
 
 
@@ -144,6 +159,7 @@ def gettitle(wikiname):
     """
     parse the title of wikiname.wiki.
     If %title field exists then use it, otherwise use wikiname
+    TODO: print warning when no %title exists
     """
     wikifile = open(wikidir + wikiname + '.wiki', 'r')
     data = wikifile.read()
@@ -162,15 +178,6 @@ def gettitle(wikiname):
         rawtitle = rawtitle[sd + 1:]
     title += rawtitle
     return title
-
-
-def getdate(wikiname):
-    """
-    get the modification date of wikiname.wiki
-    """
-    ct = time.ctime(path.getmtime(wikidir + wikiname + '.wiki'))
-    tt = ct.split()
-    return tt[2] + ' ' + tt[1] + ' ' + tt[-1]
 
 
 
